@@ -50,6 +50,8 @@ class SitemapUrlRepository extends Repository
 
     public function deleteUncheckedUrls(): void
     {
+        $this->persistenceManager->persistAll();
+
         $this->buildAllUrlsCache();;
         $uncheckedUrls = \array_diff(
             \array_keys($this->allUrlsCache),
@@ -60,6 +62,7 @@ class SitemapUrlRepository extends Repository
             $this->remove($sitemapUrlEntry);
         }
         $this->persistenceManager->persistAll();
+        $this->resetCheckedUrls();
     }
 
     public function add($object)
@@ -71,6 +74,8 @@ class SitemapUrlRepository extends Repository
 
     private function buildAllUrlsCache(): void
     {
+        $this->persistenceManager->persistAll();
+
         if (null === $this->allUrlsCache) {
             $this->allUrlsCache = [];
 

@@ -15,6 +15,7 @@ use Jbaron\Sitemapcrawler\Domain\Repository\SitemapUrlRepository;
 use Psr\Http\Client\ClientInterface;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 
 class SitemapCrawler implements SingletonInterface
 {
@@ -22,23 +23,27 @@ class SitemapCrawler implements SingletonInterface
     private RequestFactory $requestFactory;
     private SitemapUrlRepository $sitemapUrlRepository;
     private SitemapParser $sitemapParser;
+    private PersistenceManagerInterface $persistenceManager;
 
     public function __construct(
         ClientInterface $httpClient,
         RequestFactory $requestFactory,
         SitemapUrlRepository $sitemapUrlRepository,
-        SitemapParser $sitemapParser
+        SitemapParser $sitemapParser,
+        PersistenceManagerInterface $persistenceManager
     ) {
         $this->httpClient = $httpClient;
         $this->requestFactory = $requestFactory;
         $this->sitemapUrlRepository = $sitemapUrlRepository;
         $this->sitemapParser = $sitemapParser;
+        $this->persistenceManager = $persistenceManager;
     }
 
     public function updateSitemapData(string $url): int
     {
         $numberUrls = 0;
 
+        $numberAddedUrls = 0;
         $this->sitemapUrlRepository->resetCheckedUrls();
         foreach ($this->sitemapParser->getUrlsFromSitemapUrl($url) as $sitemapUrl) {
             $numberUrls++;
@@ -46,8 +51,18 @@ class SitemapCrawler implements SingletonInterface
                 continue;
             }
 
+            $numberAddedUrls++;
             $this->sitemapUrlRepository->add(new SitemapUrl($sitemapUrl));
+            $numberAddedUrls++;
+            if (0 === $numberAddedUrls % 100) {
+                $this->persistenceManager->persistAll();
+            }
         }
+
+        $this->persistenceManager->persistAll();
+        $this->sitemapUrlRepository->deleteUncheckedUrls();
+        $this->persistenceManager->persistAll();
+
         return $numberUrls;
     }
 

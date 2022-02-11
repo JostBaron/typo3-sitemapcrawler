@@ -19,6 +19,7 @@ services:
       $requestFactory: '@Psr\Http\Message\RequestFactoryInterface'
       $sitemapUrlRepository: '@Jbaron\Sitemapcrawler\Domain\Repository\SitemapUrlRepository'
       $sitemapParser: '@Jbaron\Sitemapcrawler\Service\SitemapParser'
+      $persistenceManager: '@TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface'
 
   ######################################################################################################################
   ### Repositories
