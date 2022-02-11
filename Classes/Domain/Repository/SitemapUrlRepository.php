@@ -58,7 +58,7 @@ class SitemapUrlRepository extends Repository
             \array_keys($this->checkedUrls)
         );
         foreach ($uncheckedUrls as $uncheckedUrl) {
-            $sitemapUrlEntry = $this->findByUrl($uncheckedUrl);
+            $sitemapUrlEntry = $this->findOneByUrl($uncheckedUrl);
             $this->remove($sitemapUrlEntry);
         }
         $this->persistenceManager->persistAll();

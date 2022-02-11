@@ -7,6 +7,7 @@ CREATE table tx_jbaron_sitemapcrawler_domain_model_sitemapurl (
     # The domain model fields
     url varchar(255) DEFAULT '' NOT NULL,
     last_crawled int(11) DEFAULT '0' NOT NULL,
+    last_status_code int(11) DEFAULT NULL,
 
     PRIMARY KEY (uid),
     KEY url (url),

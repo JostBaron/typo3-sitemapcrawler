@@ -52,7 +52,7 @@ class SitemapCrawler implements SingletonInterface
             }
 
             $numberAddedUrls++;
-            $this->sitemapUrlRepository->add(new SitemapUrl($sitemapUrl));
+            $this->sitemapUrlRepository->add(new SitemapUrl($sitemapUrl, null, null));
             $numberAddedUrls++;
             if (0 === $numberAddedUrls % 100) {
                 $this->persistenceManager->persistAll();
@@ -82,8 +82,10 @@ class SitemapCrawler implements SingletonInterface
                     $responseCodes[(string)$response->getStatusCode()] = 0;
                 }
                 $responseCodes[(string)$response->getStatusCode()]++;
+                $entry->setLastStatusCode($response->getStatusCode());
             } catch (\Throwable $throwable) {
                 $responseCodes['failed']++;
+                $entry->setLastStatusCode(SitemapUrl::STATUSCODE_FAILED);
                 continue;
             }
 
@@ -92,6 +94,8 @@ class SitemapCrawler implements SingletonInterface
 
             \usleep(500000);
         }
+
+        $this->persistenceManager->persistAll();
 
         return $responseCodes;
     }

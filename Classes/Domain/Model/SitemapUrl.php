@@ -14,13 +14,17 @@ use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 
 class SitemapUrl extends AbstractEntity
 {
-    private string $url;
-    private ?int $lastCrawled;
+    public const STATUSCODE_FAILED = -1;
 
-    public function __construct(string $url, ?int $lastCrawled = null)
+    protected ?string $url = null;
+    protected ?int $lastCrawled;
+    protected ?int $lastStatusCode;
+
+    public function __construct(string $url, ?int $lastCrawled, ?int $lastStatusCode)
     {
         $this->url = $url;
         $this->lastCrawled = $lastCrawled;
+        $this->lastStatusCode = $lastStatusCode;
     }
 
     public function getUrl(): string
@@ -46,5 +50,20 @@ class SitemapUrl extends AbstractEntity
     public function setLastCrawled(int $lastCrawled): void
     {
         $this->lastCrawled = $lastCrawled;
+    }
+
+    public function hasLastStatusCode(): bool
+    {
+        return null !== $this->lastStatusCode;
+    }
+
+    public function getLastStatusCode(): int
+    {
+        return $this->lastStatusCode;
+    }
+
+    public function setLastStatusCode(?int $lastStatusCode): void
+    {
+        $this->lastStatusCode = $lastStatusCode;
     }
 }
