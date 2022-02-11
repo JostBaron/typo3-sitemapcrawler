@@ -1,0 +1,40 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  ######################################################################################################################
+  ### Services
+  ######################################################################################################################
+  Jbaron\Sitemapcrawler\Service\SitemapParser:
+    class: Jbaron\Sitemapcrawler\Service\SitemapParser
+    arguments:
+      $httpClient: Psr\Http\Client\ClientInterface
+      $requestFactory: Psr\Http\Message\RequestFactoryInterface
+  Jbaron\Sitemapcrawler\Service\SitemapCrawler:
+    class: Jbaron\Sitemapcrawler\Service\SitemapCrawler
+    arguments:
+      $httpClient: Psr\Http\Client\ClientInterface
+      $requestFactory: Psr\Http\Message\RequestFactoryInterface
+      $sitemapUrlRepository: Jbaron\Sitemapcrawler\Domain\Repository\SitemapUrlRepository
+      $sitemapParser: Jbaron\Sitemapcrawler\Service\SitemapParser
+
+  ######################################################################################################################
+  ### Repositories
+  ######################################################################################################################
+  Jbaron\Sitemapcrawler\Domain\Repository\SitemapUrlRepository:
+    class: Jbaron\Sitemapcrawler\Domain\Repository\SitemapUrlRepository
+
+  ######################################################################################################################
+  ### Commands
+  ######################################################################################################################
+  Jbaron\Sitemapcrawler\Command\ParseSitemap:
+    class: Jbaron\Sitemapcrawler\Command\ParseSitemap
+    arguments:
+      $name: 'sitemapcrawler:parse'
+      $sitemapCrawler: Jbaron\Sitemapcrawler\Service\SitemapCrawler
+    tags:
+      - name: 'console.command'
+        command: 'sitemapcrawler:parse'
+        schedulable: true
