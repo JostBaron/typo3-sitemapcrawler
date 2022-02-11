@@ -21,11 +21,16 @@ class SitemapUrl extends AbstractEntity
     protected ?int $lastStatusCode;
     protected ?float $lastRequestTime;
 
-    public function __construct(string $url, ?int $lastCrawled, ?int $lastStatusCode)
-    {
+    public function __construct(
+        string $url,
+        ?int $lastCrawled,
+        ?int $lastStatusCode,
+        ?float $lastRequestTime
+    ) {
         $this->url = $url;
         $this->lastCrawled = $lastCrawled;
         $this->lastStatusCode = $lastStatusCode;
+        $this->lastRequestTime = $lastRequestTime;
     }
 
     public function getUrl(): string
