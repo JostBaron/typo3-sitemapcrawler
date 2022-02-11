@@ -47,5 +47,11 @@ $GLOBALS['TCA']['tx_jbaron_sitemapcrawler_domain_model_sitemapurl'] = [
                 'type' => 'passthrough',
             ],
         ],
+        'last_status_code' => [
+            'label' => 'Status code from last crawl. Minus one (-1) is for failed HTTP request.',
+            'config' => [
+                'type' => 'passthrough',
+            ],
+        ],
     ],
 ];
