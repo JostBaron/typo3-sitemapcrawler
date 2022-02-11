@@ -10,15 +10,15 @@ services:
   Jbaron\Sitemapcrawler\Service\SitemapParser:
     class: Jbaron\Sitemapcrawler\Service\SitemapParser
     arguments:
-      $httpClient: Psr\Http\Client\ClientInterface
-      $requestFactory: Psr\Http\Message\RequestFactoryInterface
+      $httpClient: '@Psr\Http\Client\ClientInterface'
+      $requestFactory: '@Psr\Http\Message\RequestFactoryInterface'
   Jbaron\Sitemapcrawler\Service\SitemapCrawler:
     class: Jbaron\Sitemapcrawler\Service\SitemapCrawler
     arguments:
-      $httpClient: Psr\Http\Client\ClientInterface
-      $requestFactory: Psr\Http\Message\RequestFactoryInterface
-      $sitemapUrlRepository: Jbaron\Sitemapcrawler\Domain\Repository\SitemapUrlRepository
-      $sitemapParser: Jbaron\Sitemapcrawler\Service\SitemapParser
+      $httpClient: '@Psr\Http\Client\ClientInterface'
+      $requestFactory: '@Psr\Http\Message\RequestFactoryInterface'
+      $sitemapUrlRepository: '@Jbaron\Sitemapcrawler\Domain\Repository\SitemapUrlRepository'
+      $sitemapParser: '@Jbaron\Sitemapcrawler\Service\SitemapParser'
 
   ######################################################################################################################
   ### Repositories
@@ -33,8 +33,17 @@ services:
     class: Jbaron\Sitemapcrawler\Command\ParseSitemap
     arguments:
       $name: 'sitemapcrawler:parse'
-      $sitemapCrawler: Jbaron\Sitemapcrawler\Service\SitemapCrawler
+      $sitemapCrawler: '@Jbaron\Sitemapcrawler\Service\SitemapCrawler'
     tags:
       - name: 'console.command'
         command: 'sitemapcrawler:parse'
+        schedulable: true
+  Jbaron\Sitemapcrawler\Command\CrawlEntries:
+    class: Jbaron\Sitemapcrawler\Command\CrawlEntries
+    arguments:
+      $name: 'sitemapcrawler:crawl'
+      $sitemapCrawler: '@Jbaron\Sitemapcrawler\Service\SitemapCrawler'
+    tags:
+      - name: 'console.command'
+        command: 'sitemapcrawler:crawl'
         schedulable: true
