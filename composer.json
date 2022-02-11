@@ -1,5 +1,5 @@
 {
-  "name": "meinbauernhof/sitemapcrawler",
+  "name": "jbaron/sitemapcrawler",
   "type": "typo3-cms-extension",
   "description": "TYPO3 extension for parsing a sitemap and fetching its entries to warm up caches.",
   "license": [
