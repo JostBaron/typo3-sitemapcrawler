@@ -1,8 +1,8 @@
 <?php
 
 $EM_CONF[$_EXTKEY] = array(
-	'title' => 'Sitemap crawlser',
-	'description' => 'AutomaticallyTYPO3 extension for parsing a sitemap and fetching its entries to warm up caches.',
+	'title' => 'Sitemap crawler',
+	'description' => 'Extension for parsing a sitemap and fetching its entries to warm up caches.',
 
 	'author' => 'Jost Baron',
 	'author_email' => 'jost.baron@mein-bauernhof.de',
