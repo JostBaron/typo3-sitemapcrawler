@@ -30,7 +30,7 @@ class SitemapUrlRepository extends Repository
     {
         $query = $this->createQuery();
         $query->setLimit($number);
-        $query->setOrderings(['lastCrawled' => QueryInterface::ORDER_DESCENDING]);
+        $query->setOrderings(['lastCrawled' => QueryInterface::ORDER_ASCENDING]);
         return $query->execute();
     }
 
