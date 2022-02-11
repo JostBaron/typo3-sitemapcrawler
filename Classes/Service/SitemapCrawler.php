@@ -77,9 +77,11 @@ class SitemapCrawler implements SingletonInterface
         foreach ($this->sitemapUrlRepository->findLongestNonCrawledEntries($maxNumber) as $entry) {
             $currentIndex++;
             try {
+                $requestStartTime = \microtime(true);
                 $response = $this->httpClient->sendRequest(
                     $this->requestFactory->createRequest('GET', $entry->getUrl())
                 );
+                $requestEndTime = \microtime(true);
                 if (!\array_key_exists($response->getStatusCode(), $responseCodes)) {
                     $responseCodes[(string)$response->getStatusCode()] = 0;
                 }
@@ -87,7 +89,10 @@ class SitemapCrawler implements SingletonInterface
                 $entry->setLastStatusCode($response->getStatusCode());
             } catch (\Throwable $throwable) {
                 $responseCodes['failed']++;
+                $requestEndTime = \microtime(true);
                 $entry->setLastStatusCode(SitemapUrl::STATUSCODE_FAILED);
+            } finally {
+                $entry->setLastRequestTime($requestEndTime - $requestStartTime);
             }
 
             $entry->setLastCrawled(\time());

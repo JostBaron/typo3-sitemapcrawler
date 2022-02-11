@@ -19,6 +19,7 @@ class SitemapUrl extends AbstractEntity
     protected ?string $url = null;
     protected ?int $lastCrawled;
     protected ?int $lastStatusCode;
+    protected ?float $lastRequestTime;
 
     public function __construct(string $url, ?int $lastCrawled, ?int $lastStatusCode)
     {
@@ -65,5 +66,15 @@ class SitemapUrl extends AbstractEntity
     public function setLastStatusCode(?int $lastStatusCode): void
     {
         $this->lastStatusCode = $lastStatusCode;
+    }
+
+    public function getLastRequestTime(): ?float
+    {
+        return $this->lastRequestTime;
+    }
+
+    public function setLastRequestTime(?float $lastRequestTime): void
+    {
+        $this->lastRequestTime = $lastRequestTime;
     }
 }

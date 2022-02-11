@@ -53,5 +53,11 @@ $GLOBALS['TCA']['tx_jbaron_sitemapcrawler_domain_model_sitemapurl'] = [
                 'type' => 'passthrough',
             ],
         ],
+        'last_request_time' => [
+            'label' => 'The time in seconds the last request took (complete download)',
+            'config' => [
+                'type'  => 'passthrough',
+            ]
+        ],
     ],
 ];
