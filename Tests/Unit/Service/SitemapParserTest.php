@@ -170,11 +170,33 @@ class SitemapParserTest extends UnitTestCase
     /**
      * @test
      */
-    public function returnsNothingForInvalidXml(): void
+    public function throwsForInvalidXmlWithoutEmittingWarnings(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, 'this is not XML');
 
-        self::assertSame([], $this->parse());
+        // PHPUnit turns warnings into exceptions of other types, so reaching the
+        // expected exception also proves that no warning was emitted.
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(1795478402);
+        $this->expectExceptionMessage('Start tag expected');
+
+        $this->parse();
+    }
+
+    /**
+     * @test
+     */
+    public function leavesLibxmlErrorHandlingAsItWas(): void
+    {
+        $this->httpClient->respondWith(self::SITEMAP_URL, 'this is not XML');
+        $previous = \libxml_use_internal_errors(false);
+
+        try {
+            $this->parse();
+        } catch (\RuntimeException $exception) {
+        }
+
+        self::assertFalse(\libxml_use_internal_errors($previous));
     }
 
     /**

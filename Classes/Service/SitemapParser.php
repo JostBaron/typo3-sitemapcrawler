@@ -35,15 +35,12 @@ class SitemapParser implements SingletonInterface
     }
 
     /**
-     * @throws \RuntimeException If a sitemap cannot be downloaded. Callers rely on this to
-     *                           tell an unavailable sitemap apart from an empty one.
+     * @throws \RuntimeException If a sitemap cannot be downloaded or is not valid XML. Callers
+     *                           rely on this to tell an unavailable sitemap apart from an empty one.
      */
     public function getUrlsFromSitemapUrl(string $sitemapUrl, bool $isRecursion = false): \Iterator
     {
         $domDocument = $this->downloadAndParseUrl($sitemapUrl);
-        if (null === $domDocument) {
-            return;
-        }
 
         $type = $this->getType($domDocument);
         switch ($type) {
@@ -76,13 +73,28 @@ class SitemapParser implements SingletonInterface
         }
     }
 
-    private function downloadAndParseUrl(string $url): ?\DOMDocument
+    private function downloadAndParseUrl(string $url): \DOMDocument
     {
         $content = $this->downloadUrl($url);
 
-        $domDocument = new \DOMDocument();
-        if (!$domDocument->loadXML($content)) {
-            return null;
+        // Collect libxml errors instead of emitting a PHP warning per error.
+        $previousUseInternalErrors = \libxml_use_internal_errors(true);
+        try {
+            $domDocument = new \DOMDocument();
+            if (!$domDocument->loadXML($content)) {
+                $error = \libxml_get_last_error();
+                throw new \RuntimeException(
+                    \sprintf(
+                        'Could not parse sitemap %s: %s',
+                        $url,
+                        false === $error ? 'invalid XML' : \trim($error->message)
+                    ),
+                    1795478402
+                );
+            }
+        } finally {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($previousUseInternalErrors);
         }
 
         return $domDocument;

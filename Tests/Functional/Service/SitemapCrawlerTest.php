@@ -128,6 +128,19 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
     }
 
     /**
+     * @test
+     */
+    public function updateSitemapDataKeepsUrlsWhenSitemapIsInvalidXml(): void
+    {
+        $this->insertUrl('https://example.com/a');
+        $this->httpClient->respondWith(self::SITEMAP_URL, '<urlset><url><loc>truncated');
+
+        $this->assertUpdateFailsWithCode(1795478402);
+
+        self::assertSame(['https://example.com/a'], $this->getStoredUrls());
+    }
+
+    /**
      * One unavailable sitemap of an index must not remove the URLs it lists.
      *
      * @test
