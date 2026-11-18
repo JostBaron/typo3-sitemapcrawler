@@ -10,7 +10,22 @@ The parent workspace `CLAUDE.md` (`../../CLAUDE.md`) covers the workspace-wide c
 
 ## Commands
 
-The extension has no build step, tests, or linter. `composer install` here only installs a vendor tree (`vendor/` and `public/` are gitignored) for IDE autocompletion. To exercise the code, run it inside a site's TYPO3 installation:
+There is no build step or linter. Tests run in throw-away Docker containers via `Build/Scripts/runTests.sh`, the same setup as `fal_database`. The script starts TYPO3's `core-testing-php*` image and, for functional tests, a tmpfs database:
+
+```bash
+Build/Scripts/runTests.sh -s composerUpdate          # install dev dependencies (once, or after a -p change)
+Build/Scripts/runTests.sh -s unit                    # unit tests, no database
+Build/Scripts/runTests.sh                            # functional tests on PostgreSQL (as in production)
+Build/Scripts/runTests.sh -d mariadb                 # functional tests on MariaDB
+Build/Scripts/runTests.sh -- --filter crawlUrls      # a single test; arguments after -- go to phpunit
+Build/Scripts/runTests.sh -s lint                    # php -l over all files
+```
+
+`-p 7.4` and other values pick the PHP version. Run `composerUpdate` with the same `-p` first, because the vendor tree depends on the PHP version it was installed with. The functional run takes about a minute, mostly because `crawlUrls()` sleeps 0.25 s per URL.
+
+Unit tests (`Tests/Unit/`) cover `SitemapParser`. Functional tests (`Tests/Functional/`, on `typo3/testing-framework` 7) cover the crawler, the repository and the commands against a real database. Both use `Tests/Fixtures/FakeHttpClient`, a PSR-18 client that answers from a URL → response map (404 for unknown URLs) and records requests, so no test touches the network. `AbstractFunctionalTestCase::createCrawler()` builds the services by hand with that client, because the DI container would inject the real one.
+
+To exercise the code against a real site, run it inside a site's TYPO3 installation:
 
 ```bash
 vendor/bin/typo3 sitemapcrawler:parse <sitemap-or-sitemap-index-url>
@@ -32,5 +47,6 @@ All wiring is explicit in `Configuration/Services.yaml`, including the command n
 
 ## Gotchas
 
-- `composer.json` is the source of truth for supported versions (PHP `^7.4 || ^8.0 || ^8.1`, TYPO3 `^10.4 || ^11.5`). The `ext_emconf.php` constraints (TYPO3 10.4 / PHP 7.4 only) are stale. Keep the code PHP 7.4-compatible: no constructor promotion, enums, `readonly` or union types.
+- Supported versions: TYPO3 `^11.5` only, on PHP 7.4 to 8.3. `composer.json` is the source of truth; keep `ext_emconf.php` in line with it. Keep the code PHP 7.4-compatible: no constructor promotion, enums, `readonly` or union types.
+- Extbase does not call the model's constructor when it loads records, and it leaves a property unset when the column is `NULL`. Typed model properties therefore need a default value; otherwise their getters throw "must not be accessed before initialization".
 - Commit subjects use `[TASK]` / `[BUGFIX]` prefixes, as in the rest of the workspace. Never add `Co-Authored-By:` or any other AI-attribution trailer to commit messages.

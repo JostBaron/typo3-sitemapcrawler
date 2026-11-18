@@ -2,3 +2,5 @@
 /public/
 /composer.lock
 /.idea/workspace.xml
+/typo3/
+/var/
