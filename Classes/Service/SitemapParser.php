@@ -34,11 +34,15 @@ class SitemapParser implements SingletonInterface
         $this->requestFactory = $requestFactory;
     }
 
+    /**
+     * @throws \RuntimeException If a sitemap cannot be downloaded. Callers rely on this to
+     *                           tell an unavailable sitemap apart from an empty one.
+     */
     public function getUrlsFromSitemapUrl(string $sitemapUrl, bool $isRecursion = false): \Iterator
     {
         $domDocument = $this->downloadAndParseUrl($sitemapUrl);
         if (null === $domDocument) {
-            return [];
+            return;
         }
 
         $type = $this->getType($domDocument);
@@ -75,9 +79,6 @@ class SitemapParser implements SingletonInterface
     private function downloadAndParseUrl(string $url): ?\DOMDocument
     {
         $content = $this->downloadUrl($url);
-        if (null === $content) {
-            return null;
-        }
 
         $domDocument = new \DOMDocument();
         if (!$domDocument->loadXML($content)) {
@@ -140,13 +141,16 @@ class SitemapParser implements SingletonInterface
         return $urls;
     }
 
-    private function downloadUrl(string $url): ?string
+    private function downloadUrl(string $url): string
     {
         $response = $this->httpClient->sendRequest(
             $this->requestFactory->createRequest('GET', $url)
         );
         if (200 > $response->getStatusCode() || 300 <= $response->getStatusCode()) {
-            return null;
+            throw new \RuntimeException(
+                \sprintf('Could not download sitemap %s: HTTP status %d.', $url, $response->getStatusCode()),
+                1795478401
+            );
         }
         return (string)$response->getBody();
     }

@@ -93,16 +93,19 @@ class SitemapParserTest extends UnitTestCase
     /**
      * @test
      */
-    public function skipsSitemapsOfIndexThatCannotBeDownloaded(): void
+    public function throwsForSitemapOfIndexThatCannotBeDownloaded(): void
     {
         $this->httpClient
             ->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemapIndex([
+                'https://example.com/sitemap-1.xml',
                 'https://example.com/missing.xml',
-                'https://example.com/sitemap-2.xml',
             ]))
-            ->respondWith('https://example.com/sitemap-2.xml', FakeHttpClient::sitemap(['https://example.com/2']));
+            ->respondWith('https://example.com/sitemap-1.xml', FakeHttpClient::sitemap(['https://example.com/1']));
 
-        self::assertSame(['https://example.com/2'], $this->parse());
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(1795478401);
+
+        $this->parse();
     }
 
     /**
@@ -137,7 +140,7 @@ class SitemapParserTest extends UnitTestCase
      * @test
      * @dataProvider nonSuccessStatusCodes
      */
-    public function returnsNothingForNonSuccessfulResponse(int $statusCode): void
+    public function throwsForNonSuccessfulResponse(int $statusCode): void
     {
         $this->httpClient->respondWith(
             self::SITEMAP_URL,
@@ -145,7 +148,11 @@ class SitemapParserTest extends UnitTestCase
             $statusCode
         );
 
-        self::assertSame([], $this->parse());
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(1795478401);
+        $this->expectExceptionMessage('HTTP status ' . $statusCode);
+
+        $this->parse();
     }
 
     /**

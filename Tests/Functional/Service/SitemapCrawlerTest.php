@@ -121,9 +121,43 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         $this->insertUrl('https://example.com/a', 1600000000, 200);
         $this->httpClient->respondWith(self::SITEMAP_URL, 'Service Unavailable', 503);
 
-        $this->createCrawler()->updateSitemapData(self::SITEMAP_URL);
+        $this->assertUpdateFailsWithCode(1795478401);
 
         self::assertSame(['https://example.com/a'], $this->getStoredUrls());
+        self::assertEquals(1600000000, $this->getRowsByUrl()['https://example.com/a']['last_crawled']);
+    }
+
+    /**
+     * One unavailable sitemap of an index must not remove the URLs it lists.
+     *
+     * @test
+     */
+    public function updateSitemapDataKeepsUrlsWhenSitemapOfIndexCannotBeDownloaded(): void
+    {
+        $this->insertUrl('https://example.com/1');
+        $this->insertUrl('https://example.com/2');
+        $this->httpClient
+            ->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemapIndex([
+                'https://example.com/sitemap-1.xml',
+                'https://example.com/sitemap-2.xml',
+            ]))
+            ->respondWith('https://example.com/sitemap-1.xml', FakeHttpClient::sitemap(['https://example.com/1']))
+            ->respondWith('https://example.com/sitemap-2.xml', 'Internal Server Error', 500);
+
+        $this->assertUpdateFailsWithCode(1795478401);
+
+        self::assertSame(['https://example.com/1', 'https://example.com/2'], $this->getStoredUrls());
+    }
+
+    private function assertUpdateFailsWithCode(int $code): void
+    {
+        try {
+            $this->createCrawler()->updateSitemapData(self::SITEMAP_URL);
+        } catch (\Exception $exception) {
+            self::assertSame($code, $exception->getCode(), $exception->getMessage());
+            return;
+        }
+        self::fail('Expected updateSitemapData() to fail.');
     }
 
     /**
@@ -134,12 +168,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         $this->insertUrl('https://example.com/a');
         $this->httpClient->respondWith(self::SITEMAP_URL, '<?xml version="1.0"?><html/>');
 
-        try {
-            $this->createCrawler()->updateSitemapData(self::SITEMAP_URL);
-            self::fail('Expected an exception for an unknown sitemap type.');
-        } catch (\InvalidArgumentException $exception) {
-            self::assertSame(1505041456, $exception->getCode());
-        }
+        $this->assertUpdateFailsWithCode(1505041456);
 
         self::assertSame(['https://example.com/a'], $this->getStoredUrls());
     }
