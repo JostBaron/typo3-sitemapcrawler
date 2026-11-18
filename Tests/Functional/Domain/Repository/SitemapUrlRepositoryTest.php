@@ -51,6 +51,22 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
     /**
      * @test
      */
+    public function findLongestNonCrawledEntriesMapsNeverCrawledEntry(): void
+    {
+        $this->insertUrl('https://example.com/new');
+
+        $entries = \iterator_to_array($this->getRepository()->findLongestNonCrawledEntries(1), false);
+
+        self::assertCount(1, $entries);
+        /** @var SitemapUrl $entry */
+        $entry = $entries[0];
+        self::assertFalse($entry->hasLastStatusCode());
+        self::assertNull($entry->getLastRequestTime());
+    }
+
+    /**
+     * @test
+     */
     public function existsEntryForFindsStoredAndNewlyAddedUrls(): void
     {
         $this->insertUrl('https://example.com/stored');

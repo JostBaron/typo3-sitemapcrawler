@@ -16,10 +16,12 @@ class SitemapUrl extends AbstractEntity
 {
     public const STATUSCODE_FAILED = -1;
 
+    // Extbase does not call the constructor when it loads a record, and it skips
+    // NULL columns. Without defaults, those properties would stay uninitialized.
     protected ?string $url = null;
-    protected ?int $lastCrawled;
-    protected ?int $lastStatusCode;
-    protected ?float $lastRequestTime;
+    protected ?int $lastCrawled = null;
+    protected ?int $lastStatusCode = null;
+    protected ?float $lastRequestTime = null;
 
     public function __construct(
         string $url,
