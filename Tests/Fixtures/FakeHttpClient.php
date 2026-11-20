@@ -26,12 +26,29 @@ final class FakeHttpClient implements ClientInterface
      */
     private array $requestedUrls = [];
 
+    /**
+     * @var array<string, callable(): void>
+     */
+    private array $listeners = [];
+
     public function respondWith(string $url, string $body, int $statusCode = 200): self
     {
         $stream = new Stream('php://temp', 'rw');
         $stream->write($body);
         $stream->rewind();
         $this->responses[$url] = new Response($stream, $statusCode);
+        return $this;
+    }
+
+    /**
+     * Calls the listener whenever the URL is requested, before answering, e.g. to
+     * inspect the database at that point of a run.
+     *
+     * @param callable(): void $listener
+     */
+    public function onRequest(string $url, callable $listener): self
+    {
+        $this->listeners[$url] = $listener;
         return $this;
     }
 
@@ -48,6 +65,9 @@ final class FakeHttpClient implements ClientInterface
     {
         $url = (string)$request->getUri();
         $this->requestedUrls[] = $url;
+        if (isset($this->listeners[$url])) {
+            ($this->listeners[$url])();
+        }
 
         $response = $this->responses[$url] ?? new Response('php://temp', 404);
         if ($response instanceof \Throwable) {

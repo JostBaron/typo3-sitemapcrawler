@@ -112,6 +112,36 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
     }
 
     /**
+     * The parser fetches the sitemaps of an index lazily, so the second request
+     * shows what was persisted after the 150 URLs of the first sitemap.
+     *
+     * @test
+     */
+    public function updateSitemapDataPersistsNewUrlsInBatchesOfHundred(): void
+    {
+        $firstSitemapUrls = [];
+        for ($i = 0; $i < 150; $i++) {
+            $firstSitemapUrls[] = 'https://example.com/page-' . $i;
+        }
+        $storedWhenSecondSitemapWasRequested = null;
+        $this->httpClient
+            ->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemapIndex([
+                'https://example.com/sitemap-1.xml',
+                'https://example.com/sitemap-2.xml',
+            ]))
+            ->respondWith('https://example.com/sitemap-1.xml', FakeHttpClient::sitemap($firstSitemapUrls))
+            ->respondWith('https://example.com/sitemap-2.xml', FakeHttpClient::sitemap(['https://example.com/last']))
+            ->onRequest('https://example.com/sitemap-2.xml', function () use (&$storedWhenSecondSitemapWasRequested): void {
+                $storedWhenSecondSitemapWasRequested = \count($this->getStoredUrls());
+            });
+
+        self::assertSame(151, $this->createCrawler()->updateSitemapData(self::SITEMAP_URL));
+
+        self::assertSame(100, $storedWhenSecondSitemapWasRequested);
+        self::assertCount(151, $this->getStoredUrls());
+    }
+
+    /**
      * A sitemap that is temporarily unavailable must not wipe all URLs and their crawl history.
      *
      * @test

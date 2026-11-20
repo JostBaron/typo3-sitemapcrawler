@@ -72,11 +72,15 @@ class SitemapUrlRepository extends Repository
         $this->allUrlsCache[$object->getUrl()] = true;
     }
 
+    /**
+     * Loads all stored URLs once. Afterwards, add() keeps the cache current, so
+     * callers can batch their persistAll() calls.
+     */
     private function buildAllUrlsCache(): void
     {
-        $this->persistenceManager->persistAll();
-
         if (null === $this->allUrlsCache) {
+            // The query only sees objects that have been persisted.
+            $this->persistenceManager->persistAll();
             $this->allUrlsCache = [];
 
             $query = $this->createQuery();

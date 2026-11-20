@@ -83,6 +83,20 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
     /**
      * @test
      */
+    public function existsEntryForLeavesPersistingToTheCaller(): void
+    {
+        $repository = $this->getRepository();
+        $repository->existsEntryFor('https://example.com/loads-the-cache');
+
+        $repository->add(new SitemapUrl('https://example.com/added', null, null, null));
+        $repository->existsEntryFor('https://example.com/other');
+
+        self::assertSame([], $this->getStoredUrls());
+    }
+
+    /**
+     * @test
+     */
     public function deleteUncheckedUrlsRemovesOnlyUrlsNotCheckedSinceReset(): void
     {
         $this->insertUrl('https://example.com/checked');
