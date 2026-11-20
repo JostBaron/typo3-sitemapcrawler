@@ -51,7 +51,6 @@ class SitemapCrawler implements SingletonInterface
                 continue;
             }
 
-            $numberAddedUrls++;
             $this->sitemapUrlRepository->add(
                 new SitemapUrl($sitemapUrl, null, null, null)
             );
