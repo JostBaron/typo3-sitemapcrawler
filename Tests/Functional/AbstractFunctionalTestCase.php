@@ -9,6 +9,7 @@ use Jbaron\Sitemapcrawler\Service\SitemapCrawler;
 use Jbaron\Sitemapcrawler\Service\SitemapParser;
 use Jbaron\Sitemapcrawler\Tests\Fixtures\FakeHttpClient;
 use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Http\Client\GuzzleClientFactory;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
@@ -40,7 +41,7 @@ abstract class AbstractFunctionalTestCase extends FunctionalTestCase
 
     protected function createCrawler(): SitemapCrawler
     {
-        $requestFactory = new RequestFactory();
+        $requestFactory = new RequestFactory(new GuzzleClientFactory());
         return new SitemapCrawler(
             $this->httpClient,
             $requestFactory,

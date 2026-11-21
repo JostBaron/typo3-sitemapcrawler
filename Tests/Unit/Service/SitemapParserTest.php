@@ -6,6 +6,7 @@ namespace Jbaron\Sitemapcrawler\Tests\Unit\Service;
 
 use Jbaron\Sitemapcrawler\Service\SitemapParser;
 use Jbaron\Sitemapcrawler\Tests\Fixtures\FakeHttpClient;
+use TYPO3\CMS\Core\Http\Client\GuzzleClientFactory;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
@@ -20,7 +21,7 @@ class SitemapParserTest extends UnitTestCase
     {
         parent::setUp();
         $this->httpClient = new FakeHttpClient();
-        $this->subject = new SitemapParser($this->httpClient, new RequestFactory());
+        $this->subject = new SitemapParser($this->httpClient, new RequestFactory(new GuzzleClientFactory()));
     }
 
     /**

@@ -58,8 +58,13 @@ class SitemapUrlRepository extends Repository
             \array_keys($this->checkedUrls)
         );
         foreach ($uncheckedUrls as $uncheckedUrl) {
-            $sitemapUrlEntry = $this->findOneByUrl($uncheckedUrl);
-            $this->remove($sitemapUrlEntry);
+            // Not the magic findOneByUrl(): TYPO3 12 deprecates it, and its replacement
+            // findOneBy() does not exist in TYPO3 11.
+            $query = $this->createQuery();
+            $sitemapUrlEntry = $query->matching($query->equals('url', $uncheckedUrl))->execute()->getFirst();
+            if (null !== $sitemapUrlEntry) {
+                $this->remove($sitemapUrlEntry);
+            }
         }
         $this->persistenceManager->persistAll();
         $this->resetCheckedUrls();

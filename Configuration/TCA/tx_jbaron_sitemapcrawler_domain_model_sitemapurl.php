@@ -12,6 +12,10 @@ $GLOBALS['TCA']['tx_jbaron_sitemapcrawler_domain_model_sitemapurl'] = [
         'label'             => 'url',
         'hideTable'         => true,
         'dividers2tabs'     => true,
+        // TYPO3 12+. TYPO3 11 uses allowTableOnStandardPages() in ext_tables.php.
+        'security'          => [
+            'ignorePageTypeRestriction' => true,
+        ],
     ],
     'types' => [
         '0' => [
