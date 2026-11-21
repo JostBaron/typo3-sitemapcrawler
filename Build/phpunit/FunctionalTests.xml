@@ -13,7 +13,7 @@
     convertErrorsToExceptions="true"
     convertWarningsToExceptions="true"
     convertNoticesToExceptions="true"
-    convertDeprecationsToExceptions="false"
+    convertDeprecationsToExceptions="true"
     beStrictAboutTestsThatDoNotTestAnything="true"
     failOnRisky="true"
     failOnWarning="true"

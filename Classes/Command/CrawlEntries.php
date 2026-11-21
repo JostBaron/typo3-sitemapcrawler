@@ -29,7 +29,7 @@ class CrawlEntries extends Command
         $this->sitemapCrawler = $sitemapCrawler;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription(
             'Crawls sitemap entries. Crawls entries that were not crawled for the longest time first.'
@@ -37,7 +37,7 @@ class CrawlEntries extends Command
         $this->addArgument(self::ARGUMENT_NUMBER, InputArgument::REQUIRED, 'Number of entries to crawl');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $numberToCrawl = (int)$input->getArgument(self::ARGUMENT_NUMBER);
         $numberToCrawl = \max(1, \min($numberToCrawl, 100000));

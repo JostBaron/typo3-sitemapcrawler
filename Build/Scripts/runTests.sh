@@ -14,11 +14,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SUITE="functional"
 DBMS="postgres"
 PHP_VERSION="8.1"
-CORE_VERSION="11"
 
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [-s <suite>] [-t <core-version>] [-d <dbms>] [-p <php-version>] [-- <arguments>]
+Usage: $(basename "$0") [-s <suite>] [-d <dbms>] [-p <php-version>] [-- <arguments>]
 
   -s <suite>   functional (default)  Run the functional tests. Arguments go to phpunit,
                                      e.g. -- --filter crawlUrls
@@ -26,29 +25,24 @@ Usage: $(basename "$0") [-s <suite>] [-t <core-version>] [-d <dbms>] [-p <php-ve
                                      go to phpunit.
                composer              Run composer in the PHP container. Arguments go to
                                      composer (default: install).
-               composerUpdate        Install the dev dependencies for the TYPO3 version
-                                     given by -t. The tests run against whichever
-                                     version was installed last. Arguments go to
-                                     composer update.
+               composerUpdate        Update and install the dev dependencies. Arguments
+                                     go to composer update.
                lint                  Syntax-check all PHP files.
-  -t <version> TYPO3 major version for composerUpdate: 11 (default) or 12.
-               TYPO3 12 needs PHP 8.1 or later.
   -d <dbms>    postgres (default, as in production) or mariadb. Functional tests only.
-  -p <version> PHP version of the test image, e.g. 7.4, 8.1 (default), 8.2, 8.3.
+  -p <version> PHP version of the test image, e.g. 8.1 (default), 8.2, 8.3.
   -h           Show this help.
 
 Examples:
-  $(basename "$0") -s composerUpdate -t 12
+  $(basename "$0") -s composerUpdate
   $(basename "$0")
   $(basename "$0") -s unit
   $(basename "$0") -d mariadb -- --filter SitemapCrawlerTest
 EOF
 }
 
-while getopts ":s:t:d:p:h" opt; do
+while getopts ":s:d:p:h" opt; do
     case "${opt}" in
         s) SUITE="${OPTARG}" ;;
-        t) CORE_VERSION="${OPTARG}" ;;
         d) DBMS="${OPTARG}" ;;
         p) PHP_VERSION="${OPTARG}" ;;
         h) usage; exit 0 ;;
@@ -187,27 +181,9 @@ case "${SUITE}" in
         run_php "${PHP_IMAGE}" composer "$@"
         ;;
     composerUpdate)
-        case "${CORE_VERSION}" in
-            11) CORE_CONSTRAINT="^11.5" ;;
-            12) CORE_CONSTRAINT="^12.4" ;;
-            *)
-                echo "Unknown TYPO3 version \"${CORE_VERSION}\"." >&2
-                usage >&2
-                exit 2
-                ;;
-        esac
-        # --with constrains the core for this update only, composer.json stays unchanged.
-        # Every TYPO3 11.5 and 12.4 release has security advisories, which composer 2.9+
-        # refuses to install by default. --no-blocking allows them for this dev install only.
-        # Older composer versions (e.g. in the PHP 7.4 image) neither block nor know the option.
-        # shellcheck disable=SC2016 # Expanded by the container's shell, not this one.
-        run_php "${PHP_IMAGE}" sh -c '
-            if composer update --help | grep -q -- --no-blocking; then
-                set -- --no-blocking "$@"
-            fi
-            exec composer update --with-all-dependencies "$@"' sh \
-            --with "typo3/cms-core:${CORE_CONSTRAINT}" \
-            --with "typo3/cms-extbase:${CORE_CONSTRAINT}" "$@"
+        # Every TYPO3 12.4 release has security advisories, which composer 2.9+ refuses
+        # to install by default. --no-blocking allows them for this dev install only.
+        run_php "${PHP_IMAGE}" composer update --with-all-dependencies --no-blocking "$@"
         ;;
     lint)
         run_php "${PHP_IMAGE}" sh -c \

@@ -6,13 +6,12 @@
  * file 'LICENSE.txt', which is part of this source code package.
  */
 
-$GLOBALS['TCA']['tx_jbaron_sitemapcrawler_domain_model_sitemapurl'] = [
+return [
     'ctrl' => [
         'title'             => 'Sitemap URL',
         'label'             => 'url',
         'hideTable'         => true,
-        'dividers2tabs'     => true,
-        // TYPO3 12+. TYPO3 11 uses allowTableOnStandardPages() in ext_tables.php.
+        // Allows records on standard pages, not only in sysfolders.
         'security'          => [
             'ignorePageTypeRestriction' => true,
         ],
