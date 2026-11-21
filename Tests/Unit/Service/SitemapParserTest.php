@@ -6,6 +6,8 @@ namespace Jbaron\Sitemapcrawler\Tests\Unit\Service;
 
 use Jbaron\Sitemapcrawler\Service\SitemapParser;
 use Jbaron\Sitemapcrawler\Tests\Fixtures\FakeHttpClient;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Http\Client\GuzzleClientFactory;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
@@ -32,9 +34,7 @@ class SitemapParserTest extends UnitTestCase
         return \iterator_to_array($this->subject->getUrlsFromSitemapUrl($url), false);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnsUrlsOfSitemapInDocumentOrder(): void
     {
         $urls = ['https://example.com/', 'https://example.com/b', 'https://example.com/a?x=1&y=2'];
@@ -43,9 +43,7 @@ class SitemapParserTest extends UnitTestCase
         self::assertSame($urls, $this->parse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnsNothingForEmptySitemap(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemap([]));
@@ -53,9 +51,7 @@ class SitemapParserTest extends UnitTestCase
         self::assertSame([], $this->parse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function ignoresOtherSitemapElementsAndExtensions(): void
     {
         $this->httpClient->respondWith(
@@ -72,9 +68,7 @@ class SitemapParserTest extends UnitTestCase
         self::assertSame(['https://example.com/de'], $this->parse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function followsSitemapIndexToAllItsSitemaps(): void
     {
         $this->httpClient
@@ -91,9 +85,7 @@ class SitemapParserTest extends UnitTestCase
         self::assertSame(['https://example.com/1', 'https://example.com/2a', 'https://example.com/2b'], $this->parse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function throwsForSitemapOfIndexThatCannotBeDownloaded(): void
     {
         $this->httpClient
@@ -109,9 +101,7 @@ class SitemapParserTest extends UnitTestCase
         $this->parse();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function throwsForSitemapIndexNestedInSitemapIndex(): void
     {
         $this->httpClient
@@ -124,9 +114,7 @@ class SitemapParserTest extends UnitTestCase
         $this->parse();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function throwsForUnknownRootElement(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, '<?xml version="1.0"?><html><body/></html>');
@@ -137,10 +125,8 @@ class SitemapParserTest extends UnitTestCase
         $this->parse();
     }
 
-    /**
-     * @test
-     * @dataProvider nonSuccessStatusCodes
-     */
+    #[Test]
+    #[DataProvider('nonSuccessStatusCodes')]
     public function throwsForNonSuccessfulResponse(int $statusCode): void
     {
         $this->httpClient->respondWith(
@@ -159,7 +145,7 @@ class SitemapParserTest extends UnitTestCase
     /**
      * @return array<string, array{int}>
      */
-    public function nonSuccessStatusCodes(): array
+    public static function nonSuccessStatusCodes(): array
     {
         return [
             'redirect' => [301],
@@ -168,25 +154,32 @@ class SitemapParserTest extends UnitTestCase
         ];
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function throwsForInvalidXmlWithoutEmittingWarnings(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, 'this is not XML');
 
-        // PHPUnit turns warnings into exceptions of other types, so reaching the
-        // expected exception also proves that no warning was emitted.
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionCode(1795478402);
-        $this->expectExceptionMessage('Start tag expected');
+        $errors = [];
+        \set_error_handler(static function (int $level, string $message) use (&$errors): bool {
+            $errors[] = $message;
+            return true;
+        });
+        $exception = null;
+        try {
+            $this->parse();
+        } catch (\RuntimeException $caught) {
+            $exception = $caught;
+        } finally {
+            \restore_error_handler();
+        }
 
-        $this->parse();
+        self::assertSame([], $errors);
+        self::assertInstanceOf(\RuntimeException::class, $exception, 'Expected an exception for invalid XML.');
+        self::assertSame(1795478402, $exception->getCode());
+        self::assertStringContainsString('Start tag expected', $exception->getMessage());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function leavesLibxmlErrorHandlingAsItWas(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, 'this is not XML');
@@ -200,9 +193,7 @@ class SitemapParserTest extends UnitTestCase
         self::assertFalse(\libxml_use_internal_errors($previous));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function passesOnExceptionsOfHttpClient(): void
     {
         $exception = new \RuntimeException('Connection refused', 1700000000);
@@ -213,9 +204,7 @@ class SitemapParserTest extends UnitTestCase
         $this->parse();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function downloadsLazilyWhenIterated(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemap(['https://example.com/']));

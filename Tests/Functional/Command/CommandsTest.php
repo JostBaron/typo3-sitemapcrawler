@@ -8,16 +8,16 @@ use Jbaron\Sitemapcrawler\Command\CrawlEntries;
 use Jbaron\Sitemapcrawler\Command\ParseSitemap;
 use Jbaron\Sitemapcrawler\Tests\Fixtures\FakeHttpClient;
 use Jbaron\Sitemapcrawler\Tests\Functional\AbstractFunctionalTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Console\Tester\CommandTester;
 use TYPO3\CMS\Core\Console\CommandRegistry;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class CommandsTest extends AbstractFunctionalTestCase
 {
-    /**
-     * @test
-     * @dataProvider registeredCommands
-     */
+    #[Test]
+    #[DataProvider('registeredCommands')]
     public function commandIsRegisteredUnderItsName(string $name, string $className): void
     {
         $command = GeneralUtility::makeInstance(CommandRegistry::class)->getCommandByIdentifier($name);
@@ -29,7 +29,7 @@ class CommandsTest extends AbstractFunctionalTestCase
     /**
      * @return array<string, array{string, class-string}>
      */
-    public function registeredCommands(): array
+    public static function registeredCommands(): array
     {
         return [
             'parse' => ['sitemapcrawler:parse', ParseSitemap::class],
@@ -37,9 +37,7 @@ class CommandsTest extends AbstractFunctionalTestCase
         ];
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function parseCommandStoresUrlsAndReportsTheirNumber(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemap([
@@ -55,9 +53,7 @@ class CommandsTest extends AbstractFunctionalTestCase
         self::assertSame(['https://example.com/a', 'https://example.com/b'], $this->getStoredUrls());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function crawlCommandReportsStatusCodes(): void
     {
         $this->insertUrl('https://example.com/a', 1);
@@ -75,10 +71,8 @@ class CommandsTest extends AbstractFunctionalTestCase
         self::assertStringContainsString('Got 0 entries with status code failed', $display);
     }
 
-    /**
-     * @test
-     * @dataProvider numbersBelowOne
-     */
+    #[Test]
+    #[DataProvider('numbersBelowOne')]
     public function crawlCommandCrawlsAtLeastOneUrl(string $number): void
     {
         $this->insertUrl('https://example.com/a', 1);
@@ -93,7 +87,7 @@ class CommandsTest extends AbstractFunctionalTestCase
     /**
      * @return array<string, array{string}>
      */
-    public function numbersBelowOne(): array
+    public static function numbersBelowOne(): array
     {
         return [
             'zero' => ['0'],

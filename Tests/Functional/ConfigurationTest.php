@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Jbaron\Sitemapcrawler\Tests\Functional;
 
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\DataHandling\PageDoktypeRegistry;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Migrations\TcaMigration;
@@ -11,9 +12,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ConfigurationTest extends AbstractFunctionalTestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function tableIsAllowedOnStandardPages(): void
     {
         self::assertTrue(
@@ -25,9 +24,8 @@ class ConfigurationTest extends AbstractFunctionalTestCase
     /**
      * TYPO3 migrates outdated TCA on the fly and only logs it, so outdated settings
      * would otherwise go unnoticed.
-     *
-     * @test
      */
+    #[Test]
     public function tcaNeedsNoMigration(): void
     {
         $tca = require __DIR__ . '/../../Configuration/TCA/' . self::TABLE . '.php';

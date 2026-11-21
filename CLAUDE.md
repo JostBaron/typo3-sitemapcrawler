@@ -21,9 +21,11 @@ Build/Scripts/runTests.sh -- --filter crawlUrls      # a single test; arguments 
 Build/Scripts/runTests.sh -s lint                    # php -l over all files
 ```
 
-`-p 8.3` and other values pick the PHP version. Run `composerUpdate` with the same `-p` first, because the vendor tree depends on the PHP version it was installed with. The functional run takes about a minute, mostly because `crawlUrls()` sleeps 0.25 s per URL.
+`-p 8.3` and other values pick the PHP version. Run `composerUpdate` with the same `-p` first, because the vendor tree depends on the PHP version it was installed with. The functional run takes about 15 seconds, much of it because `crawlUrls()` sleeps 0.25 s per URL.
 
-Unit tests (`Tests/Unit/`) cover `SitemapParser`. Functional tests (`Tests/Functional/`, on `typo3/testing-framework` 7) cover the crawler, the repository, the commands and the configuration against a real database. Both use `Tests/Fixtures/FakeHttpClient`, a PSR-18 client that answers from a URL → response map (404 for unknown URLs) and records requests, so no test touches the network. `AbstractFunctionalTestCase::createCrawler()` builds the services by hand with that client, because the DI container would inject the real one.
+Unit tests (`Tests/Unit/`) cover `SitemapParser`. Functional tests (`Tests/Functional/`) cover the crawler, the repository, the commands and the configuration against a real database. Both use `Tests/Fixtures/FakeHttpClient`, a PSR-18 client that answers from a URL → response map (404 for unknown URLs) and records requests, so no test touches the network. `AbstractFunctionalTestCase::createCrawler()` builds the services by hand with that client, because the DI container would inject the real one.
+
+The tests run on `typo3/testing-framework` 8 and PHPUnit 10. Mark tests with attributes (`#[Test]`, `#[DataProvider('…')]`), not docblock annotations, which PHPUnit 11 deprecates. Data providers must be `public static`. PHPUnit 10 no longer turns warnings or deprecations into exceptions. To assert that code emits none, collect them with `set_error_handler()`, as `SitemapParserTest::throwsForInvalidXmlWithoutEmittingWarnings()` does.
 
 To exercise the code against a real site, run it inside a site's TYPO3 installation:
 
@@ -49,9 +51,9 @@ All wiring is explicit in `Configuration/Services.yaml`, including the command n
 
 - Supported versions: TYPO3 `^12.4` only, on PHP 8.1 to 8.3. `composer.json` is the source of truth; keep `ext_emconf.php` in line with it.
 - Keep the code free of deprecations:
-  - The tests turn PHP's own deprecations into errors (`convertDeprecationsToExceptions` in `Build/phpunit/*.xml`).
+  - The PHPUnit configs (`Build/phpunit/*.xml`) fail the run on any deprecation, notice or warning. That includes PHP's own deprecations, TYPO3's runtime ones (`E_USER_DEPRECATED`) and PHPUnit's.
   - `ConfigurationTest::tcaNeedsNoMigration()` fails when TYPO3 would have to migrate the TCA.
-  - TYPO3 12 deprecations are not caught: most are marked in docblocks only, and the testing framework handles the `E_USER_DEPRECATED` notices of the rest itself. Check the `@deprecated` docblocks of the core APIs you call. For example, use `findOneBy(['url' => …])`, not the magic `findOneByUrl()`.
+  - Most TYPO3 12 deprecations are marked in docblocks only, without triggering anything at runtime, so the tests can't catch them. Check the `@deprecated` docblocks of the core APIs you call. For example, use `findOneBy(['url' => …])`, not the magic `findOneByUrl()`.
 - The extension needs no `ext_localconf.php` or `ext_tables.php`. If you add one, guard it with `defined('TYPO3') || die();`, never `TYPO3_MODE`: TYPO3 12 removed that constant. The testing framework still defines `TYPO3_MODE`, so tests won't catch a guard that uses it.
 - Extbase does not call the model's constructor when it loads records, and it leaves a property unset when the column is `NULL`. Typed model properties therefore need a default value; otherwise their getters throw "must not be accessed before initialization".
 - Commit subjects use `[TASK]` / `[BUGFIX]` prefixes, as in the rest of the workspace. Never add `Co-Authored-By:` or any other AI-attribution trailer to commit messages.

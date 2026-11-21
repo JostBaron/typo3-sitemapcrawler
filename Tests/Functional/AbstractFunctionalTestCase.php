@@ -28,7 +28,7 @@ abstract class AbstractFunctionalTestCase extends FunctionalTestCase
      * @var string[]
      */
     protected array $testExtensionsToLoad = [
-        'typo3conf/ext/sitemapcrawler',
+        'jbaron/sitemapcrawler',
     ];
 
     protected FakeHttpClient $httpClient;

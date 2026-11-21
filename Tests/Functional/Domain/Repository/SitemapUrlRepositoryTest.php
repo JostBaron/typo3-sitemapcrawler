@@ -6,14 +6,13 @@ namespace Jbaron\Sitemapcrawler\Tests\Functional\Domain\Repository;
 
 use Jbaron\Sitemapcrawler\Domain\Model\SitemapUrl;
 use Jbaron\Sitemapcrawler\Tests\Functional\AbstractFunctionalTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 
 class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function findLongestNonCrawledEntriesOrdersByLastCrawledAndRespectsLimit(): void
     {
         $this->insertUrl('https://example.com/c', 300);
@@ -29,9 +28,7 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
         self::assertSame(['https://example.com/a', 'https://example.com/b', 'https://example.com/c'], $urls);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function findLongestNonCrawledEntriesMapsAllFields(): void
     {
         $this->insertUrl('https://example.com/a', 1600000000, 404);
@@ -48,9 +45,7 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
         self::assertNull($entry->getLastRequestTime());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function findLongestNonCrawledEntriesMapsNeverCrawledEntry(): void
     {
         $this->insertUrl('https://example.com/new');
@@ -64,9 +59,7 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
         self::assertNull($entry->getLastRequestTime());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function existsEntryForFindsStoredAndNewlyAddedUrls(): void
     {
         $this->insertUrl('https://example.com/stored');
@@ -80,9 +73,7 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
         self::assertTrue($repository->existsEntryFor('https://example.com/added'));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function existsEntryForLeavesPersistingToTheCaller(): void
     {
         $repository = $this->getRepository();
@@ -94,9 +85,7 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
         self::assertSame([], $this->getStoredUrls());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function deleteUncheckedUrlsRemovesOnlyUrlsNotCheckedSinceReset(): void
     {
         $this->insertUrl('https://example.com/checked');
@@ -113,9 +102,7 @@ class SitemapUrlRepositoryTest extends AbstractFunctionalTestCase
         self::assertSame(['https://example.com/checked'], $this->getStoredUrls());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updatePersistsChangedFields(): void
     {
         $this->insertUrl('https://example.com/a');

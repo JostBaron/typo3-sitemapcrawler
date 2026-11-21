@@ -7,12 +7,11 @@ namespace Jbaron\Sitemapcrawler\Tests\Functional\Service;
 use Jbaron\Sitemapcrawler\Domain\Model\SitemapUrl;
 use Jbaron\Sitemapcrawler\Tests\Fixtures\FakeHttpClient;
 use Jbaron\Sitemapcrawler\Tests\Functional\AbstractFunctionalTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class SitemapCrawlerTest extends AbstractFunctionalTestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataStoresAllUrlsAsNotYetCrawled(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemap([
@@ -32,9 +31,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataStoresUrlsOfAllSitemapsOfIndex(): void
     {
         $this->httpClient
@@ -49,9 +46,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertSame(['https://example.com/1', 'https://example.com/2'], $this->getStoredUrls());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataStoresUrlListedTwiceOnlyOnce(): void
     {
         $this->httpClient->respondWith(self::SITEMAP_URL, FakeHttpClient::sitemap([
@@ -63,9 +58,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertSame(['https://example.com/a'], $this->getStoredUrls());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataKeepsCrawlDataOfKnownUrls(): void
     {
         $this->insertUrl('https://example.com/known', 1600000000, 200);
@@ -82,9 +75,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertEquals(200, $rows['https://example.com/known']['last_status_code']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataRemovesUrlsNoLongerInSitemap(): void
     {
         $this->insertUrl('https://example.com/kept');
@@ -96,9 +87,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertSame(['https://example.com/kept'], $this->getStoredUrls());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataStoresManyUrls(): void
     {
         $urls = [];
@@ -114,9 +103,8 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
     /**
      * The parser fetches the sitemaps of an index lazily, so the second request
      * shows what was persisted after the 150 URLs of the first sitemap.
-     *
-     * @test
      */
+    #[Test]
     public function updateSitemapDataPersistsNewUrlsInBatchesOfHundred(): void
     {
         $firstSitemapUrls = [];
@@ -143,9 +131,8 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
 
     /**
      * A sitemap that is temporarily unavailable must not wipe all URLs and their crawl history.
-     *
-     * @test
      */
+    #[Test]
     public function updateSitemapDataKeepsUrlsWhenSitemapCannotBeDownloaded(): void
     {
         $this->insertUrl('https://example.com/a', 1600000000, 200);
@@ -157,9 +144,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertEquals(1600000000, $this->getRowsByUrl()['https://example.com/a']['last_crawled']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataKeepsUrlsWhenSitemapIsInvalidXml(): void
     {
         $this->insertUrl('https://example.com/a');
@@ -172,9 +157,8 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
 
     /**
      * One unavailable sitemap of an index must not remove the URLs it lists.
-     *
-     * @test
      */
+    #[Test]
     public function updateSitemapDataKeepsUrlsWhenSitemapOfIndexCannotBeDownloaded(): void
     {
         $this->insertUrl('https://example.com/1');
@@ -203,9 +187,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::fail('Expected updateSitemapData() to fail.');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function updateSitemapDataKeepsUrlsWhenParsingFails(): void
     {
         $this->insertUrl('https://example.com/a');
@@ -216,9 +198,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertSame(['https://example.com/a'], $this->getStoredUrls());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function crawlUrlsRequestsLeastRecentlyCrawledUrlsFirst(): void
     {
         $this->insertUrl('https://example.com/recent', 1600000300);
@@ -234,9 +214,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function crawlUrlsStoresResultOfEachRequest(): void
     {
         $this->insertUrl('https://example.com/ok');
@@ -258,9 +236,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function crawlUrlsRecordsFailedRequestsAndContinues(): void
     {
         $this->insertUrl('https://example.com/failing');
@@ -278,9 +254,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertEquals(200, $rows['https://example.com/ok']['last_status_code']);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function crawlUrlsCountsResponsesPerStatusCode(): void
     {
         $this->insertUrl('https://example.com/a', 1);
@@ -296,9 +270,7 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
         self::assertEquals(['failed' => 0, 200 => 2, 500 => 1], $responseCodes);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function crawlUrlsDoesNothingWithoutUrls(): void
     {
         self::assertSame(['failed' => 0], $this->createCrawler()->crawlUrls(10));
@@ -307,9 +279,8 @@ class SitemapCrawlerTest extends AbstractFunctionalTestCase
 
     /**
      * After a full round, the next run starts again with the URL crawled first.
-     *
-     * @test
      */
+    #[Test]
     public function crawlUrlsCyclesThroughAllUrls(): void
     {
         $this->insertUrl('https://example.com/a', 1);
